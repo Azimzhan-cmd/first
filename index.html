@@ -14,7 +14,7 @@
             --text-light: #ffffff;
             --s-plus-rank: #ff0055;
             --s-rank: #ffd700;
-            --event-bg: #2a0a10; /* Темно-красный фон для ивента */
+            --event-bg: #2a0a10;
         }
 
         * {
@@ -27,6 +27,7 @@
         body {
             background-color: var(--dark-bg);
             color: var(--text-light);
+            overflow-x: hidden; /* Чтобы не было горизонтальной прокрутки при открытии модалки */
         }
 
         header {
@@ -130,7 +131,6 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); }
         }
 
-        /* --- СТАРЫЕ СТИЛИ --- */
         .controls {
             max-width: 1200px;
             margin: 20px auto;
@@ -176,16 +176,6 @@
             transform: translateY(-2px);
         }
 
-        .btn.special {
-            border: 1px solid var(--s-rank);
-            color: var(--s-rank);
-        }
-
-        .btn.special:hover {
-            background: var(--s-rank);
-            color: black;
-        }
-
         #character-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -202,6 +192,7 @@
             position: relative;
             transition: transform 0.3s;
             border: 1px solid #333;
+            cursor: pointer; /* Указывает, что элемент кликабельный */
         }
 
         .card:hover {
@@ -262,11 +253,168 @@
             color: #ccc;
         }
 
+        /* --- НОВЫЕ СТИЛИ ДЛЯ МОДАЛЬНОГО ОКНА --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: #252530;
+            width: 90%;
+            max-width: 800px;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(255, 94, 0, 0.4);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2.5rem;
+            color: #fff;
+            cursor: pointer;
+            z-index: 10;
+            line-height: 0.5;
+        }
+
+        .close-btn:hover {
+            color: var(--primary);
+        }
+
+        .modal-body {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .modal-image-col {
+            flex: 1;
+            min-width: 300px;
+            background: #111;
+        }
+
+        .modal-image-col img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            min-height: 400px;
+        }
+
+        .modal-info-col {
+            flex: 1.5;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-header h2 {
+            font-size: 3.5rem;
+            line-height: 1;
+            color: white;
+        }
+
+        .modal-rank {
+            font-size: 1.5rem;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .stat-bars {
+            margin-top: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            width: 80px;
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+
+        .stat-track {
+            flex: 1;
+            height: 10px;
+            background: #444;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #ffd700);
+            width: 0%;
+            transition: width 1s ease-out;
+        }
+
+        .stat-val {
+            width: 40px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .full-desc {
+            font-size: 1.1rem;
+            line-height: 1.4;
+            color: #ddd;
+            border-top: 1px solid #444;
+            padding-top: 15px;
+        }
+
         footer {
             text-align: center;
             padding: 20px;
             color: #666;
             margin-top: 50px;
+        }
+
+        /* Адаптив для модалки */
+        @media (max-width: 768px) {
+            .modal-content {
+                flex-direction: column;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            .modal-image-col img {
+                height: 250px;
+                min-height: auto;
+            }
         }
     </style>
 </head>
@@ -294,6 +442,7 @@
             </div>
         </div>
     </div>
+    
     <div class="controls">
         <input type="text" id="searchBar" placeholder="Поиск персонажа...">
         
@@ -309,12 +458,55 @@
     <main id="character-grid">
         </main>
 
+    <div class="modal-overlay" id="charModal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="closeModalDirect()">&times;</span>
+            <div class="modal-body">
+                <div class="modal-image-col">
+                    <img id="modalImg" src="" alt="">
+                </div>
+                <div class="modal-info-col">
+                    <div class="modal-header">
+                        <h2 id="modalName">Name</h2>
+                        <span id="modalRank" class="rank">Rank</span>
+                        <p id="modalPos" style="color: #aaa; font-size: 1.3rem;">Position</p>
+                    </div>
+
+                    <div class="stat-bars">
+                        <div class="stat-row">
+                            <span class="stat-label">Атака</span>
+                            <div class="stat-track"><div class="stat-fill" id="barAtk"></div></div>
+                            <span class="stat-val" id="valAtk">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Защита</span>
+                            <div class="stat-track"><div class="stat-fill" id="barDef"></div></div>
+                            <span class="stat-val" id="valDef">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Прыжок</span>
+                            <div class="stat-track"><div class="stat-fill" id="barJmp"></div></div>
+                            <span class="stat-val" id="valJmp">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Скорость</span>
+                            <div class="stat-track"><div class="stat-fill" id="barSpd"></div></div>
+                            <span class="stat-val" id="valSpd">0</span>
+                        </div>
+                    </div>
+
+                    <p id="modalDesc" class="full-desc">Description</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <p>Fan Catalog for The Spike: Volleyball Story</p>
     </footer>
 
     <script>
-        // Данные персонажей
+        // Данные персонажей (добавлена статистика)
         const characters = [
             // --- S+ RANK ---
             {
@@ -322,7 +514,8 @@
                 rank: "S-plus",
                 displayRank: "S+",
                 position: "WS",
-                desc: "Сильнейший доигровщик. Использует 'Громовой удар' и требует точного разбега.",
+                desc: "Сильнейший доигровщик. Использует 'Громовой удар'. При правильном тайминге прыжка может пробить любой блок.",
+                stats: { atk: 195, def: 140, jmp: 195, spd: 160 },
                 img: "https://i.namu.wiki/i/pmGELlNzZyjBK0XdOYHqTV54gauaw3y-X3KMC6Iegrd_h3jTlS4YlpfFVVcEtHpf5yk1DTBax0Us6j4AdAK58_fOwomAM-ZeeWM9aKlL4v0RRnXhHITf33so1n9wqxq4NS_054-v4d0pbRWH5QPLlQ.webp"
             },
             {
@@ -330,7 +523,8 @@
                 rank: "S-plus",
                 displayRank: "S+",
                 position: "WS",
-                desc: "Универсальный ас с адаптивным стилем игры.",
+                desc: "Универсальный ас с адаптивным стилем игры. Способен менять траекторию удара в воздухе.",
+                stats: { atk: 180, def: 160, jmp: 175, spd: 170 },
                 img: "https://i.namu.wiki/i/Mpn1MDoTxOMdCudZbVMBAq_AXsuiBxDYmQ4g7vVi1qcTc0kftFkBQPAZYovh4sZvGjFp4LNqnvoT6QKy02JiFTp2Z5oQn-qs6QcAE2kjlYbQLK813ZvfiqTWw-dp3jE1tFfRIn4fJFkPAk6sqZ5RfA.webp"
             },
             {
@@ -338,7 +532,8 @@
                 rank: "S-plus",
                 displayRank: "S+",
                 position: "WS",
-                desc: "Мощный легионер, пробивающий блоки грубой силой.",
+                desc: "Мощный легионер. Его удары обладают такой силой, что могут сбить защитников с ног.",
+                stats: { atk: 190, def: 130, jmp: 180, spd: 140 },
                 img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKRbkHPUI5WXECIAyPgEf8ZUwyEaAi3mjpFw&s"
             },
 
@@ -348,7 +543,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "WS",
-                desc: "Не имеет спецэффектов, но обладает максимальными базовыми статами прыжка и силы.",
+                desc: "Классический ас. Не имеет спецэффектов, но обладает максимальными базовыми статами прыжка и силы удара.",
+                stats: { atk: 185, def: 140, jmp: 185, spd: 155 },
                 img: "https://i.namu.wiki/i/f4JC48FQOBDXvD_kpAzSkMIuO2jWlACwimegVH7Tr2ClJxe9yVik-v9Nh5B7_rh0NzT1CLSijcLOvF5Z_JDCvsoeuDbpvshFugPV-9o2Kqupa58KcNgrH0-pJUzibaCtxXuEo8DcEjvW3cGoX6uIfw.webp"
             },
             {
@@ -356,7 +552,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "WS",
-                desc: "Становится сильнее каждые 3 очка соперника. В режиме 'Полдень' неудержим.",
+                desc: "Становится сильнее каждые 3 очка соперника. В режиме 'Полдень' его характеристики превосходят S+ ранг.",
+                stats: { atk: 160, def: 150, jmp: 160, spd: 150 }, // Базовые, растут в матче
                 img: "https://i.namu.wiki/i/aNgYxmaU71rXLbPnQicQeikTj7mP4WPtE7VbdKMJOqgDcOHQ-NFg8FRIOsevdnP4scxNB5kH_SxCzZCID1XUkfHT9mQ5u0j6ERCqEtseQjYR0kIoVSna7NJRDbpa4Y9qgPEdQ-J7FL7p0uGHyfm-8w.webp"
             },
             {
@@ -364,7 +561,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "WS",
-                desc: "Способность 'Решимость': бафф к статам при низкой выносливости команды.",
+                desc: "Способность 'Решимость'. Когда выносливость команды падает, его параметры резко возрастают.",
+                stats: { atk: 165, def: 165, jmp: 170, spd: 160 },
                 img: "https://i.namu.wiki/i/z7Vy1Gm-GIsQveI3Sc-s0_dDny5YsjZY5_2rCp0OOMz5JGlhYQWRM-5tzOi9sLVGoa5Uu2AblfJPh2UVURqSLXxB_MRi7HV7668YGF9M97ftHhlQVlwEBP00SUz1WWVyDrrbxXqvqX24SLA7MYDthw.webp"
             },
             {
@@ -372,7 +570,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "WS",
-                desc: "Мастер техники, использующий финты и обманные маневры.",
+                desc: "Мастер техники. Использует финты и обманные маневры, чтобы запутать блокирующих соперника.",
+                stats: { atk: 155, def: 160, jmp: 160, spd: 175 },
                 img: "https://i.namu.wiki/i/_8qFyBVT_d94xR5qCwYYYhXNYWJ71BXoPGu0AlBc15EYIki-ucxb9mH_4xBKevdrIJQXA8-U0OWotDIYWOJ9Jnbd-7AeGHu-OHJHcPNGwbW4qy_XzwvXcujti662vqJo7WijTb9tcY5eg0fLpRr-Ig.webp"
             },
             {
@@ -380,7 +579,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "WS",
-                desc: "Очень быстрый нападающий, идеально подходит для скоростных розыгрышей.",
+                desc: "Очень быстрый нападающий. Специализируется на скоростных атаках до того, как блок успеет сформироваться.",
+                stats: { atk: 150, def: 150, jmp: 170, spd: 190 },
                 img: "https://i.namu.wiki/i/0dkIkG2coNF42Ul9ZBHNbMXdsKetaKlUSjcVKW-K6c63tLAJ0Js76bDL-us8MBWubfX8Ni0gWK1TSX62F9fUSOM18rV_tpNj_XnSzZAkUaEio6yxrnv2EiANeb3dbtGdNMueurjxsvWRX8rqdJ2d_g.webp"
             },
             {
@@ -388,15 +588,17 @@
                 rank: "S",
                 displayRank: "S",
                 position: "WS",
-                desc: "Тяжелый нападающий с мощной подачей.",
+                desc: "Тяжелый нападающий с невероятно мощной подачей, но медленным передвижением.",
+                stats: { atk: 185, def: 120, jmp: 175, spd: 110 },
                 img: "https://i.namu.wiki/i/LEiFg2O9FJvKyJlccLZC2IqFL1V2pBjccO4pN7ndib75PiTQGSLiv6z2XDEIwp-TRLIwoBcPdzIEhlvvJwq6smLx64iBTtxHdeRgWQhMRAhoNA3J2tIDcPPXT4gxyt089mOZ0LtpFPu602OZ6qaE8Q.webp"
             },
-             {
+            {
                 name: "Jenny",
                 rank: "S",
                 displayRank: "S",
                 position: "WS",
-                desc: "Отличный баланс атаки и защиты.",
+                desc: "Отличный баланс атаки и защиты. Стабильный игрок, который редко совершает ошибки.",
+                stats: { atk: 165, def: 175, jmp: 160, spd: 165 },
                 img: "https://i.namu.wiki/i/JP5YaODAxl9KJ5GyZu3hppHkk1e8fL6MlyZTMBJ_9xL06cVzmr_THF7SyOkMKMw-OQRBg0w9q4csNSvF_sSvNNh2a8ryVRDUbvK-Hi7MCzZ88OpPKMVpiN5Ok5cnmv6upUcwr9hle7178B6G9juSPg.webp"
             },
 
@@ -406,7 +608,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "MB",
-                desc: "Способность 'Highlight': усиливает всю команду на короткое время.",
+                desc: "Способность 'Highlight': активирует режим, усиливающий параметры всей команды на короткое время.",
+                stats: { atk: 150, def: 170, jmp: 165, spd: 145 },
                 img: "https://i.namu.wiki/i/0kGrtoTPl--YNHsigPLILDzjdxngj_Pd6lGpOx7DGZGcaDi1YNGWe5_QnU_pqDk6gXQcFxU9R_0G7yqR_ShD1K0bRaoqV4B1P7VUipnCWKirVZmbD4olB4eT1xaqFpt9ADcG9jowpjFf86ahL6C7WQ.webp"
             },
             {
@@ -414,7 +617,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "MB",
-                desc: "'Абсолютная защита'. Его блок непробиваем в активной фазе.",
+                desc: "'Абсолютная защита'. Его блок становится непробиваемым, когда активируется его способность. Идеальный защитник.",
+                stats: { atk: 130, def: 195, jmp: 160, spd: 140 },
                 img: "https://i.namu.wiki/i/DqffvZLxFTq4wpNtrGFD6U5sTO__nmV-NAl2sxlywov-OxKm9FgqyZrXQaVyxa7cX7Zw0JghM75nmDD3r762OyN2iX3nLQjEgj5aNlQcKRlvgjk9-8GkC4XtCK_C2peJFi0FW-ec_7ZpFaG3kv92Jg.webp"
             },
             {
@@ -422,7 +626,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "MB",
-                desc: "Специалист по чтению игры и предугадыванию атак.",
+                desc: "Специалист по чтению игры. Автоматически перемещается к месту атаки соперника.",
+                stats: { atk: 140, def: 180, jmp: 165, spd: 155 },
                 img: "https://i.namu.wiki/i/MD8JxakDoqdtGAqHwURD_aJRCQWyn4y4qUWGlM-rvprqEVXH2EzXrf0ttPBESkwm3ikrhSQEIkWh31asVO7Nz0px_x2qgAQvyYvBgLjuaJ5t_MV1lPJaXr-OYW8wjpjL8FoPNiXxrLmTFQcLY1GRbg.webp"
             },
             {
@@ -430,7 +635,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "MB",
-                desc: "Самый высокий игрок. Медленный, но доминирует на сетке.",
+                desc: "Самый высокий игрок в лиге. Очень медленный, но полностью доминирует на сетке благодаря росту.",
+                stats: { atk: 170, def: 185, jmp: 120, spd: 100 },
                 img: "https://i.namu.wiki/i/fZ8tnQ7yX3w54P-EpDKocHKAHCnQbvO6nF-pmAYUeDW93YyJZYlP2TGgYyPzl12b81trY8C6kdxMnh8wBM4Xj_RlczsJnBMD56d6L1Fzvpoof7c0DLShIaUAYs9Qu_GwjEGmdursorr7rHIpW30DYw.webp"
             },
             {
@@ -438,15 +644,17 @@
                 rank: "S",
                 displayRank: "S",
                 position: "MB",
-                desc: "Стабильный блокирующий мирового уровня.",
+                desc: "Стабильный блокирующий мирового уровня с хорошей техникой атаки первым темпом.",
+                stats: { atk: 160, def: 165, jmp: 170, spd: 150 },
                 img: "https://i.namu.wiki/i/TATiyW1gOuKr6f9texMZ3YY8frEYcyJkQXoG3Vq74TjcxSmBzaLwI4GysTp1yzTNYphlc1azL5_O6eWKtaxiF5sfEyE_o197u6ALm7INKkPa7byJnBWi0vHLQ5UUiRfbJeLTgaAGvKp9-W-jhecV7w.webp"
             },
-             {
+            {
                 name: "Hanra",
                 rank: "S",
                 displayRank: "S",
                 position: "MB",
-                desc: "Подвижный блокирующий, успевающий закрывать края.",
+                desc: "Очень подвижный блокирующий, успевающий закрывать края площадки.",
+                stats: { atk: 140, def: 160, jmp: 160, spd: 180 },
                 img: "https://i.namu.wiki/i/No_0kzfx2bCB2hxy8XvT7W4oZOgCQOt_jC7dripJcrpqicsoMMi-X8o-4APk2G9TdHX3xmPCT6EUVWmt3qTWn01as55lohAcXjX1apZ03qr1aXn8RDcuGDGndz7KwYNsngW1KL8utnE1FB_IUHgU0Q.webp"
             },
             {
@@ -454,15 +662,17 @@
                 rank: "S",
                 displayRank: "S",
                 position: "MB",
-                desc: "Надежный блок и хорошая подача.",
+                desc: "Надежный блок и хорошая подача. Средние показатели, но высокая стабильность.",
+                stats: { atk: 150, def: 160, jmp: 155, spd: 150 },
                 img: "https://i.namu.wiki/i/Bb8RBZ4oDkkh_doDeDMUH8SinPnSHA6XDn0yqWtzAYO9Ue_gkoiOsTmEuf7P6TyVOoeXcIgyAUxirDgm_nkck3wHrfiJ7NZ4TARQ3RkfX5czumHk8F20eIeiPNZRb6w7z_NvlfRBcd_ge9wDHNZy0A.webp"
             },
-             {
+            {
                 name: "Hari",
                 rank: "S",
                 displayRank: "S",
                 position: "MB",
-                desc: "Быстрая реакция на сетке.",
+                desc: "Обладает молниеносной реакцией на сетке, часто совершает касания блока.",
+                stats: { atk: 135, def: 155, jmp: 160, spd: 175 },
                 img: "https://i.namu.wiki/i/eXqwM9F9evVp9NVsvzxOPMbVj9fHSpTqdPM40R1ohvmm4Hq1m9n8LZgFEMP1W2eK-h8yFORVoiL2I14Ot1QejPXtcEVcPV-TgF04Rp7kPy7PgtuB0CAwxh-9H4DkNx_3czkWYLQECg0zTNw1xIEk-g.webp"
             },
 
@@ -472,7 +682,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "Se",
-                desc: "Атакующий связующий. Часто забивает сам неожиданными скидками.",
+                desc: "Атакующий связующий. Часто забивает сам неожиданными скидками и атаками со второй касания.",
+                stats: { atk: 165, def: 145, jmp: 170, spd: 170 },
                 img: "https://i.namu.wiki/i/NO6HLYTCM-JP9wqJD2x8YliA6bOhTSGQlDvqI1iBFhqR9N4R7MmIIY09uRg34-SzEUlyRuMM9BfG2okkoqImBQWxbRw--SVyXiqNJfCKl7vM29gDGITV9HcSaBHDzWjUuLB1d-w0Vkm-5Xi8TBqH3Q.webp"
             },
             {
@@ -480,7 +691,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "Se",
-                desc: "'Снайпер'. Отдает мяч с идеальной точностью, игнорируя защиту.",
+                desc: "'Снайпер'. Отдает мяч с идеальной точностью прямо в руку нападающего, игнорируя защиту.",
+                stats: { atk: 120, def: 140, jmp: 150, spd: 160 },
                 img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBPtlULOYJZOuuQRDQVGB9fI5KrWpNkrs_Cw&s"
             },
             {
@@ -488,7 +700,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "Se",
-                desc: "Создает 'зависающие' передачи, идеальные для Nishikawa.",
+                desc: "Создает 'зависающие' передачи, идеальные для Nishikawa. Дает нападающему много времени в воздухе.",
+                stats: { atk: 110, def: 150, jmp: 140, spd: 155 },
                 img: "https://i.namu.wiki/i/HTFgEH3hUMH85IAXul8Lnrb2DcX8k__N4erpLD11VSQwEkHR34jZcDwvUuGR-p9hvGcG7N09lT8zySbU-Nf7jtyzkJ7cgLJbSlXwIhwKegyVPa0BsHANlNYAOLwvzoDflQ95R9kbR3fft8w4-3MKgA.webp"
             },
             {
@@ -496,7 +709,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "Se",
-                desc: "Раскрывает потенциал центральных нападающих.",
+                desc: "Специализируется на игре через центр. Раскрывает потенциал центральных нападающих.",
+                stats: { atk: 130, def: 145, jmp: 145, spd: 160 },
                 img: "https://i.namu.wiki/i/G-rF7RZ38Smo2MmJflt786fXaKde3ACDVwmhyv0bP4YsgnmCKVJtvAv8TOckxEMqq3pm4agmC0z07twpJ8a198LJeQc-hM7kTk4AudhPcRpYlkffrHxXZySDYQDwxxNB90gdzvh3-DPR63-FycZVbg.webp"
             },
             {
@@ -504,7 +718,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "Se",
-                desc: "Любит быстрый темп и неожиданные переводы.",
+                desc: "Любит быстрый темп и неожиданные переводы с фланга на фланг.",
+                stats: { atk: 140, def: 140, jmp: 150, spd: 175 },
                 img: "https://i.namu.wiki/i/yWSg0foTkfrLQjYELzw2lM5PBflta5wHDCj3opV9BOKxIfktrE2vGEyYoScZ2bgM5YiymfsAI72y3XJEOYgvNicQoMYuyMMJvJi7vF6S-hX0YLKwZhJBQcqkWsANQNz8Ycv1PumsrEXAWC3FCuuodw.webp"
             },
             {
@@ -512,7 +727,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "Se",
-                desc: "Связующая с сильной подачей.",
+                desc: "Связующая с сильной подачей, часто приносит эйсы команде.",
+                stats: { atk: 155, def: 135, jmp: 160, spd: 150 },
                 img: "https://i.namu.wiki/i/v6iZIUukjl-6ZFaL1mfMdw8SMxnDuBXpiA1-iiuKDAqBODqqVbP3gCnhJzroqGHERkgtoavRWPZeWk1iwWENUBPjDNJcKo4XbiZpBoheGiUwGqpDgd50f0du3F1xr79viNhM216Hxjv0pFcRSI4-vw.webp"
             },
             {
@@ -520,15 +736,17 @@
                 rank: "S",
                 displayRank: "S",
                 position: "Se",
-                desc: "Тактический связующий.",
+                desc: "Тактический связующий, который анализирует слабые места соперника.",
+                stats: { atk: 125, def: 160, jmp: 145, spd: 150 },
                 img: "https://i.namu.wiki/i/rs0KeVldtlRa4f2aS4uFpvys6MuSDi7AKe2McQvROIabkW1VMJWsUO3sDEs5JYzjleBaW6jZU_q3-4pwn3AMWT4tJxpVnGgXAUfVLsionRlOU2lRbqtYjezVu7M4xbYAATn7FaLGKxo_q4EFKPbJDQ.webp"
             },
-             {
+            {
                 name: "Ellio",
                 rank: "S",
                 displayRank: "S",
                 position: "Se",
-                desc: "Стабильный и надежный.",
+                desc: "Стабильный и надежный. Редко рискует, но всегда обеспечивает удобный мяч.",
+                stats: { atk: 115, def: 155, jmp: 140, spd: 145 },
                 img: "https://i.namu.wiki/i/A_Cd8bMAZt3eETjBlHLcZLwklMYb5q7dsoPySMOYfrFv4rie5uj0Gjf8C3Vh3OjieZYeBAJWfKXO14lIEOhdQE0z5OaAZ99zMLbs_H6VbIK4HJ3XAYH7MrUhl84hmzUwkCIMnfw1AC9GHIhuzCLmrg.webp"
             },
             {
@@ -536,7 +754,8 @@
                 rank: "S",
                 displayRank: "S",
                 position: "Se",
-                desc: "Загадочный связующий с нестандартным мышлением.",
+                desc: "Загадочный связующий с нестандартным мышлением. Его передачи невозможно прочитать.",
+                stats: { atk: 130, def: 130, jmp: 165, spd: 180 },
                 img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlLNyFFn32WgmxgDDjAT3lI0bI7LezkLmONg&s"
             }
         ];
@@ -544,11 +763,63 @@
         const characterGrid = document.getElementById('character-grid');
         const searchBar = document.getElementById('searchBar');
 
+        // Функции модального окна
+        function openModal(index) {
+            const char = characters[index];
+            const modal = document.getElementById('charModal');
+            
+            // Заполнение данных
+            document.getElementById('modalImg').src = char.img;
+            document.getElementById('modalName').innerText = char.name;
+            document.getElementById('modalRank').innerText = char.displayRank;
+            document.getElementById('modalRank').className = `rank ${char.rank} modal-rank`;
+            document.getElementById('modalPos').innerText = `${char.position} - ${getRoleName(char.position)}`;
+            document.getElementById('modalDesc').innerText = char.desc;
+
+            // Анимация статов
+            updateStat('Atk', char.stats.atk);
+            updateStat('Def', char.stats.def);
+            updateStat('Jmp', char.stats.jmp);
+            updateStat('Spd', char.stats.spd);
+
+            // Показать
+            modal.classList.add('active');
+        }
+
+        function updateStat(idSuffix, value) {
+            const maxStat = 200; // Максимальное значение для полоски
+            const percentage = Math.min((value / maxStat) * 100, 100);
+            
+            document.getElementById(`val${idSuffix}`).innerText = value;
+            const bar = document.getElementById(`bar${idSuffix}`);
+            bar.style.width = '0%'; // сброс для анимации
+            setTimeout(() => {
+                bar.style.width = `${percentage}%`;
+            }, 100);
+        }
+
+        function closeModal(e) {
+            // Закрываем, только если клик был по темному фону (overlay), а не по контенту
+            if (e.target.id === 'charModal') {
+                document.getElementById('charModal').classList.remove('active');
+            }
+        }
+        
+        function closeModalDirect() {
+             document.getElementById('charModal').classList.remove('active');
+        }
+
+        // Рендеринг карточек
         function renderCharacters(charArray) {
             characterGrid.innerHTML = '';
             charArray.forEach(char => {
+                // Находим индекс персонажа в главном массиве, чтобы передать в openModal
+                const originalIndex = characters.indexOf(char);
+
                 const card = document.createElement('div');
                 card.classList.add('card');
+                // Добавили onclick событие
+                card.onclick = () => openModal(originalIndex);
                 
                 const rankClass = char.rank; 
 
@@ -562,7 +833,7 @@
                             <span class="rank ${rankClass}">${char.displayRank}</span>
                         </div>
                         <p class="position">${char.position} (${getRoleName(char.position)})</p>
-                        <p class="desc">${char.desc}</p>
+                        <p class="desc" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${char.desc}</p>
                     </div>
                 `;
                 characterGrid.appendChild(card);
