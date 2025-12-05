@@ -597,4 +597,28 @@
             const searchTerm = searchBar.value.toLowerCase();
             
             const filtered = characters.filter(char => {
-                const matches
+                const matchesSearch = char.name.toLowerCase().includes(searchTerm);
+                
+                let matchesFilter = false;
+                if (activeFilter === 'all') {
+                    matchesFilter = true;
+                } else if (activeFilter === 'S-plus') {
+                    matchesFilter = char.rank === 'S-plus';
+                } else {
+                    matchesFilter = char.position === activeFilter;
+                }
+
+                return matchesSearch && matchesFilter;
+            });
+
+            renderCharacters(filtered);
+        }
+
+        searchBar.addEventListener('keyup', performSearchAndFilter);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCharacters(characters);
+        });
+    </script>
+</body>
+</html>
