@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Spike: Полный Каталог & События</title>
+    <title>The Spike: Полный Каталог & Магазин</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -27,15 +27,65 @@
         body {
             background-color: var(--dark-bg);
             color: var(--text-light);
-            overflow-x: hidden; /* Чтобы не было горизонтальной прокрутки при открытии модалки */
+            overflow-x: hidden; 
         }
 
+        /* --- HEADER & SHOP STYLES --- */
         header {
             text-align: center;
             padding: 2rem;
             background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, var(--dark-bg) 100%), url('https://via.placeholder.com/1500x300/111/fff?text=The+Spike+Background');
             background-size: cover;
             border-bottom: 3px solid var(--primary);
+            position: relative; /* Для позиционирования кнопки магазина */
+        }
+
+        /* Панель пользователя (Баланс + Кнопка) */
+        .user-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .balance-box {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--primary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.5rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .shop-btn-trigger {
+            background: var(--s-rank);
+            color: black;
+            border: none;
+            padding: 5px 20px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+            transition: 0.3s;
+            animation: pulse-gold 2s infinite;
+        }
+
+        .shop-btn-trigger:hover {
+            transform: scale(1.1);
+            background: #fff;
+        }
+
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
 
         h1 {
@@ -52,7 +102,7 @@
             font-weight: 300;
         }
 
-        /* --- СТИЛИ ДЛЯ ИВЕНТА --- */
+        /* --- EVENT STYLES --- */
         .event-banner {
             background: linear-gradient(90deg, #110000 0%, var(--event-bg) 50%, #110000 100%);
             border-bottom: 2px solid var(--s-plus-rank);
@@ -74,9 +124,7 @@
             gap: 20px;
         }
 
-        .event-info {
-            flex: 2;
-        }
+        .event-info { flex: 2; }
 
         .event-badge {
             background: var(--s-plus-rank);
@@ -113,17 +161,8 @@
             min-width: 200px;
         }
 
-        .timer-label {
-            color: #aaa;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-        }
-
-        .timer-value {
-            font-size: 2.2rem;
-            color: var(--s-rank);
-            font-weight: bold;
-        }
+        .timer-label { color: #aaa; font-size: 1.1rem; text-transform: uppercase; }
+        .timer-value { font-size: 2.2rem; color: var(--s-rank); font-weight: bold; }
 
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.7); }
@@ -131,6 +170,7 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); }
         }
 
+        /* --- CONTROLS --- */
         .controls {
             max-width: 1200px;
             margin: 20px auto;
@@ -176,6 +216,7 @@
             transform: translateY(-2px);
         }
 
+        /* --- GRID & CARDS --- */
         #character-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -192,7 +233,7 @@
             position: relative;
             transition: transform 0.3s;
             border: 1px solid #333;
-            cursor: pointer; /* Указывает, что элемент кликабельный */
+            cursor: pointer;
         }
 
         .card:hover {
@@ -215,9 +256,7 @@
             object-position: top center;
         }
 
-        .card-info {
-            padding: 15px;
-        }
+        .card-info { padding: 15px; }
 
         .card-header {
             display: flex;
@@ -226,11 +265,8 @@
             margin-bottom: 10px;
         }
 
-        .name {
-            font-size: 1.8rem;
-            line-height: 1;
-        }
-
+        .name { font-size: 1.8rem; line-height: 1; }
+        
         .rank {
             font-size: 1.3rem;
             font-weight: bold;
@@ -241,26 +277,15 @@
         .rank.S { color: var(--s-rank); border: 1px solid var(--s-rank); }
         .rank.S-plus { color: var(--s-plus-rank); border: 1px solid var(--s-plus-rank); text-shadow: 0 0 5px var(--s-plus-rank); }
 
-        .position {
-            color: #aaa;
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-        }
+        .position { color: #aaa; font-size: 1.1rem; margin-bottom: 8px; }
+        .desc { font-size: 0.95rem; line-height: 1.3; color: #ccc; }
 
-        .desc {
-            font-size: 0.95rem;
-            line-height: 1.3;
-            color: #ccc;
-        }
-
-        /* --- НОВЫЕ СТИЛИ ДЛЯ МОДАЛЬНОГО ОКНА --- */
+        /* --- SHARED MODAL STYLES --- */
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85);
             z-index: 1000;
             justify-content: center;
@@ -270,10 +295,7 @@
             transition: opacity 0.3s ease;
         }
 
-        .modal-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
+        .modal-overlay.active { display: flex; opacity: 1; }
 
         .modal-content {
             background: #252530;
@@ -290,137 +312,154 @@
             transition: transform 0.3s ease;
         }
 
-        .modal-overlay.active .modal-content {
-            transform: scale(1);
-        }
+        .modal-overlay.active .modal-content { transform: scale(1); }
 
         .close-btn {
             position: absolute;
-            top: 15px;
-            right: 20px;
+            top: 15px; right: 20px;
             font-size: 2.5rem;
             color: #fff;
             cursor: pointer;
             z-index: 10;
             line-height: 0.5;
         }
+        .close-btn:hover { color: var(--primary); }
 
-        .close-btn:hover {
-            color: var(--primary);
+        /* --- CHARACTER MODAL SPECIFICS --- */
+        .modal-body { display: flex; flex-wrap: wrap; }
+        .modal-image-col { flex: 1; min-width: 300px; background: #111; }
+        .modal-image-col img { width: 100%; height: 100%; object-fit: cover; min-height: 400px; }
+        .modal-info-col { flex: 1.5; padding: 30px; display: flex; flex-direction: column; gap: 15px; }
+        .modal-header h2 { font-size: 3.5rem; line-height: 1; color: white; }
+        .modal-rank { font-size: 1.5rem; display: inline-block; margin-bottom: 10px; }
+        
+        .stat-bars { margin-top: 10px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; }
+        .stat-row { display: flex; align-items: center; margin-bottom: 8px; }
+        .stat-label { width: 80px; font-size: 1.2rem; color: #aaa; }
+        .stat-track { flex: 1; height: 10px; background: #444; border-radius: 5px; overflow: hidden; position: relative; }
+        .stat-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #ffd700); width: 0%; transition: width 1s ease-out; }
+        .stat-val { width: 40px; text-align: right; font-weight: bold; font-size: 1.2rem; }
+        .full-desc { font-size: 1.1rem; line-height: 1.4; color: #ddd; border-top: 1px solid #444; padding-top: 15px; }
+
+        /* --- SHOP MODAL SPECIFICS --- */
+        .shop-content {
+            background: #1a1a20; /* Немного темнее для магазина */
+            max-width: 900px;
+            border-color: var(--s-rank);
         }
 
-        .modal-body {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .modal-image-col {
-            flex: 1;
-            min-width: 300px;
-            background: #111;
-        }
-
-        .modal-image-col img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            min-height: 400px;
-        }
-
-        .modal-info-col {
-            flex: 1.5;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .modal-header h2 {
-            font-size: 3.5rem;
-            line-height: 1;
-            color: white;
-        }
-
-        .modal-rank {
-            font-size: 1.5rem;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-
-        .stat-bars {
-            margin-top: 10px;
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .stat-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            width: 80px;
-            font-size: 1.2rem;
-            color: #aaa;
-        }
-
-        .stat-track {
-            flex: 1;
-            height: 10px;
-            background: #444;
-            border-radius: 5px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .stat-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), #ffd700);
-            width: 0%;
-            transition: width 1s ease-out;
-        }
-
-        .stat-val {
-            width: 40px;
-            text-align: right;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .full-desc {
-            font-size: 1.1rem;
-            line-height: 1.4;
-            color: #ddd;
-            border-top: 1px solid #444;
-            padding-top: 15px;
-        }
-
-        footer {
+        .shop-header {
             text-align: center;
             padding: 20px;
-            color: #666;
-            margin-top: 50px;
+            background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(255, 215, 0, 0.1) 50%, rgba(0,0,0,0) 100%);
         }
 
-        /* Адаптив для модалки */
+        .shop-header h2 { color: var(--s-rank); font-size: 3rem; text-transform: uppercase; }
+        
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .shop-card {
+            background: #252530;
+            border: 2px solid #444;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shop-card:hover {
+            border-color: var(--s-rank);
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .shop-card.featured {
+            border-color: var(--s-plus-rank);
+            background: linear-gradient(180deg, #252530 0%, #301015 100%);
+        }
+        
+        .best-value {
+            position: absolute;
+            top: 10px; left: -30px;
+            background: var(--s-plus-rank);
+            color: white;
+            padding: 5px 30px;
+            transform: rotate(-45deg);
+            font-size: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .pack-icon { font-size: 4rem; margin: 10px 0; display: block; }
+        .pack-amount { font-size: 2.5rem; color: white; font-weight: bold; display: block; margin-bottom: 5px; }
+        .pack-bonus { color: var(--s-rank); font-size: 1.2rem; margin-bottom: 15px; min-height: 1.5rem; }
+
+        .buy-btn {
+            width: 100%;
+            padding: 10px;
+            background: #444;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .shop-card:hover .buy-btn { background: var(--s-rank); color: black; font-weight: bold; }
+        .shop-card.featured:hover .buy-btn { background: var(--s-plus-rank); color: white; }
+
+        /* --- TOAST NOTIFICATION --- */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 16px;
+            position: fixed;
+            z-index: 2000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            border: 2px solid var(--s-rank);
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+            font-size: 1.5rem;
+        }
+
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        footer { text-align: center; padding: 20px; color: #666; margin-top: 50px; }
+
         @media (max-width: 768px) {
-            .modal-content {
-                flex-direction: column;
-                max-height: 90vh;
-                overflow-y: auto;
-            }
-            .modal-image-col img {
-                height: 250px;
-                min-height: auto;
-            }
+            .modal-content { flex-direction: column; max-height: 90vh; overflow-y: auto; }
+            .modal-image-col img { height: 250px; min-height: auto; }
+            .user-panel { position: static; justify-content: center; margin-bottom: 20px; }
+            header { padding-top: 1rem; }
         }
     </style>
 </head>
 <body>
 
     <header>
+        <div class="user-panel">
+            <div class="balance-box">
+                <span>🏐</span>
+                <span id="userBalance">150</span>
+            </div>
+            <button class="shop-btn-trigger" onclick="openShop()">МАГАЗИН</button>
+        </div>
+
         <h1>THE SPIKE <span class="subtitle">S & S+ COLLECTION</span></h1>
     </header>
 
@@ -501,12 +540,51 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="shopModal" onclick="closeShop(event)">
+        <div class="modal-content shop-content" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="closeShopDirect()">&times;</span>
+            <div class="shop-header">
+                <h2>Магазин Валюты</h2>
+                <p style="color: #aaa;">Покупай мячи для найма игроков!</p>
+            </div>
+            <div class="shop-grid">
+                <div class="shop-card">
+                    <span class="pack-icon">🏐</span>
+                    <span class="pack-amount">50</span>
+                    <p class="pack-bonus">Без бонуса</p>
+                    <button class="buy-btn" onclick="buyCurrency(50)">$1.99</button>
+                </div>
+
+                <div class="shop-card">
+                    <span class="pack-icon">🏐🏐</span>
+                    <span class="pack-amount">550</span>
+                    <p class="pack-bonus">+50 Бесплатно</p>
+                    <button class="buy-btn" onclick="buyCurrency(550)">$9.99</button>
+                </div>
+
+                <div class="shop-card featured">
+                    <div class="best-value">BEST</div>
+                    <span class="pack-icon">🏐💰</span>
+                    <span class="pack-amount">1200</span>
+                    <p class="pack-bonus">+200 Бесплатно!</p>
+                    <button class="buy-btn" onclick="buyCurrency(1200)">$19.99</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Покупка успешна!</div>
+
     <footer>
         <p>Fan Catalog for The Spike: Volleyball Story</p>
     </footer>
 
     <script>
-        // Данные персонажей (добавлена статистика)
+        // --- ДАННЫЕ ИГРОКА ---
+        let userBalance = 150;
+        const balanceDisplay = document.getElementById('userBalance');
+
+        // --- ДАННЫЕ ПЕРСОНАЖЕЙ ---
         const characters = [
             // --- S+ RANK ---
             {
@@ -553,7 +631,7 @@
                 displayRank: "S",
                 position: "WS",
                 desc: "Становится сильнее каждые 3 очка соперника. В режиме 'Полдень' его характеристики превосходят S+ ранг.",
-                stats: { atk: 160, def: 150, jmp: 160, spd: 150 }, // Базовые, растут в матче
+                stats: { atk: 160, def: 150, jmp: 160, spd: 150 },
                 img: "https://i.namu.wiki/i/aNgYxmaU71rXLbPnQicQeikTj7mP4WPtE7VbdKMJOqgDcOHQ-NFg8FRIOsevdnP4scxNB5kH_SxCzZCID1XUkfHT9mQ5u0j6ERCqEtseQjYR0kIoVSna7NJRDbpa4Y9qgPEdQ-J7FL7p0uGHyfm-8w.webp"
             },
             {
@@ -763,7 +841,52 @@
         const characterGrid = document.getElementById('character-grid');
         const searchBar = document.getElementById('searchBar');
 
-        // Функции модального окна
+        // --- ФУНКЦИИ МАГАЗИНА ---
+        function openShop() {
+            document.getElementById('shopModal').classList.add('active');
+        }
+
+        function closeShop(e) {
+            // Закрываем, если клик по затемненному фону
+            if (e.target.id === 'shopModal') {
+                document.getElementById('shopModal').classList.remove('active');
+            }
+        }
+        
+        function closeShopDirect() {
+            // Закрываем крестиком
+            document.getElementById('shopModal').classList.remove('active');
+        }
+
+        function buyCurrency(amount) {
+            // Симуляция покупки
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "Ожидайте...";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                // Обновляем баланс
+                userBalance += amount;
+                balanceDisplay.innerText = userBalance;
+                
+                // Возвращаем кнопку
+                btn.innerText = originalText;
+                btn.disabled = false;
+
+                // Уведомление
+                showToast(`Успешно! +${amount} 🏐 добавлено`);
+            }, 600); // 0.6 сек задержка
+        }
+
+        function showToast(message) {
+            const x = document.getElementById("toast");
+            x.innerText = message;
+            x.className = "show";
+            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        }
+
+        // --- ФУНКЦИИ МОДАЛКИ ПЕРСОНАЖЕЙ ---
         function openModal(index) {
             const char = characters[index];
             const modal = document.getElementById('charModal');
@@ -787,19 +910,18 @@
         }
 
         function updateStat(idSuffix, value) {
-            const maxStat = 200; // Максимальное значение для полоски
+            const maxStat = 200; 
             const percentage = Math.min((value / maxStat) * 100, 100);
             
             document.getElementById(`val${idSuffix}`).innerText = value;
             const bar = document.getElementById(`bar${idSuffix}`);
-            bar.style.width = '0%'; // сброс для анимации
+            bar.style.width = '0%'; 
             setTimeout(() => {
                 bar.style.width = `${percentage}%`;
             }, 100);
         }
 
         function closeModal(e) {
-            // Закрываем, только если клик был по темному фону (overlay), а не по контенту
             if (e.target.id === 'charModal') {
                 document.getElementById('charModal').classList.remove('active');
             }
@@ -809,16 +931,15 @@
              document.getElementById('charModal').classList.remove('active');
         }
 
-        // Рендеринг карточек
+        // --- РЕНДЕРИНГ И ЛОГИКА ---
         function renderCharacters(charArray) {
             characterGrid.innerHTML = '';
             charArray.forEach(char => {
-                // Находим индекс персонажа в главном массиве, чтобы передать в openModal
+                // Находим индекс персонажа в главном массиве
                 const originalIndex = characters.indexOf(char);
 
                 const card = document.createElement('div');
                 card.classList.add('card');
-                // Добавили onclick событие
                 card.onclick = () => openModal(originalIndex);
                 
                 const rankClass = char.rank; 
